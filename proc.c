@@ -272,7 +272,7 @@ fork(void)
 void
 exit(int status)
 {
-  struct proc *p;
+  //struct proc *p;
   struct proc *curproc = myproc();
   int fd;
 
@@ -281,40 +281,40 @@ exit(int status)
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
-    if(p->ofile[fd]){
-      fileclose(p->ofile[fd]);
-      p->ofile[fd] = 0;
+    if(curproc->ofile[fd]){
+      fileclose(curproc->ofile[fd]);
+      curproc->ofile[fd] = 0;
     }
   }
 
-  iput(p->cwd);
-  p->cwd = 0;
+  iput(curproc->cwd);
+  curproc->cwd = 0;
 
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().
-  wakeup1(p->parent);
+  wakeup1(curproc->parent);
 
   // Wake up any other processes that might be going.
-  while(p->wcount > 0)
+  while(curproc->wcount > 0)
   {
-    p->wcount--;
-    wakeup1(p->wpid[p->wcount]);
+    curproc->wcount--;
+    wakeup1(curproc->wpid[curproc->wcount]);
   }
 
   // Pass abandoned children to init.
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->parent == p){
-      p->parent = initproc;
-      if(p->state == ZOMBIE)
+  for(curproc = ptable.proc; curproc < &ptable.proc[NPROC]; curproc++){
+    if(curproc->parent == curproc){
+      curproc->parent = initproc;
+      if(curproc->state == ZOMBIE)
         wakeup1(initproc);
     }
   }
   
-  p->exitstatus = status;
+  curproc->exitstatus = status;
 
   // Jump into the scheduler, never to return.
-  p->state = ZOMBIE;
+  curproc->state = ZOMBIE;
   sched();
   panic("zombie exit");
 }
