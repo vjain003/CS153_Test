@@ -301,6 +301,7 @@ exit(int status)
     curproc->wcount--;
     wakeup1(curproc->wpid[curproc->wcount]);
   }
+  
 
   // Pass abandoned children to init.
   for(curproc = ptable.proc; curproc < &ptable.proc[NPROC]; curproc++){
