@@ -345,7 +345,7 @@ waitpid(int pid, int * status, int options){
     waitProcess = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       //Look for process id
-      if(p->pid != proc){ //!= pid){
+      if(p->pid != pid){
         continue;
       }
       waitProcess = 1;
@@ -385,13 +385,13 @@ waitpid(int pid, int * status, int options){
     //   return -1;
     // }
     
-    if(!waitProcess || proc->killed){
+    if(!waitProcess || p->killed){
       release(&ptable.lock);
       return -1;
     }
 
     // Wait for process to exit.  (See wakeup1 call in proc_exit.)
-    sleep(proc, &ptable.lock);  //DOC: wait-sleep
+    sleep(p, &ptable.lock);  //DOC: wait-sleep
   }
 }
 
