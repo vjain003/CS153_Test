@@ -399,51 +399,64 @@ wait(int* status)
 
 
 
-int waitpid (int pid, int* status, int options)
-{
+int
+waitpid(int pid, int * status, int options){
+  //status must return the childs exit status
   struct proc *p;
-  int procexists, zpid;
+  int waitProcess;
 
   acquire(&ptable.lock);
-  for(;;){
-    // Scan through table looking for zombie children.
-    procexists = 0;
+  //int* status = (int*)(&aChar);
+  for(;;)
+  {
+    // Scan through table looking fora specific process.
+    waitProcess = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      //if(p->parent != proc)
-        if(p->pid != pid)
+      //Look for process id
+      if(p->pid != pid)
         continue;
-      procexists = 1;
+      waitProcess = 1;
+
+      //Add yourself to the processes waiting list
+      if(p->wcount < sizeof(p->wpid))
+      {
+        p->wpid[p->wcount] = p;
+        p->wcount++;
+      }
+
+      //We will only clear the process if its our child
       if(p->state == ZOMBIE){
-        // Found one.
-        zpid = p->pid;
-        kfree(p->kstack);
-        p->kstack = 0;
-        freevm(p->pgdir);
-        p->state = UNUSED;
-        p->pid = 0;
-        p->parent = 0;
-        p->name[0] = 0;
-        p->killed = 0;
-        release(&ptable.lock);
-	if (status != 0)
-	{
-	   *status = p->exitstatus;
-        }
-	return zpid;
+          // Found one.
+          pid = p->pid;
+          kfree(p->kstack);
+          p->kstack = 0;
+          freevm(p->pgdir);
+          p->state = UNUSED;
+          p->pid = 0;
+          p->parent = 0;
+          p->name[0] = 0;
+          p->killed = 0;
+          release(&ptable.lock);
+          return pid;
       }
     }
 
-    // No point waiting if we don't have any children.
-    if(!procexists || p->killed){
-  //    *status = -1;
+    // No point waiting if we don't have process.
+    if(!waitProcess){
+      release(&ptable.lock);
+      return -1;
+    }
+    // No point waiting if we don't have process.
+    if(p->killed){
       release(&ptable.lock);
       return -1;
     }
 
-    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    // Wait for process to exit.  (See wakeup1 call in proc_exit.)
     sleep(p, &ptable.lock);  //DOC: wait-sleep
   }
 }
+
 
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
