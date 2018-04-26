@@ -326,96 +326,36 @@ wait(int* status)
   }
 }
 
-// // waitpid functions like wait(0), but:
-// // 1) waits for process with pid given in args
-// // 2) returns the pid of the process that was terminated or -1 if the process dne
-// // 3) support NULL value as status argument, like wait(0)
-// int
-// waitpid(int pid, int * status, int options){
-//   //status must return the childs exit status
-//   struct proc *p;
-//   //struct proc *proc;
-//   int waitProcess;//, proc;
-
-//   acquire(&ptable.lock);
-//   //int* status = (int*)(&aChar);
-//   for(;;)
-//   {
-//     // Scan through table looking for a specific process.
-//     waitProcess = 0;
-//     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-//       //Look for process id
-//       if(p->pid != pid){
-//         continue;
-//       }
-//       waitProcess = 1;
-      
-      
-//       // if(waitProcess !){
-//       //   p->wcount[p->wpid] = proc;
-        
-//       //   p->wcount = p->wcount+1;
-//       // }
-
-//       //Add yourself to the processes waiting list
-//       if(p->wcount < sizeof(p->wpid))
-//       {
-//         p->wpid[p->wcount] = p;
-//         p->wcount++;
-//       }
-
-//       //We will only clear the process if its our child
-//       if(p->state == ZOMBIE){
-//           // Found one.
-//           pid = p->pid;
-//           kfree(p->kstack);
-//           p->kstack = 0;
-//           freevm(p->pgdir);
-//           p->state = UNUSED;
-//           p->pid = 0;
-//           p->parent = 0;
-//           p->name[0] = 0;
-//           p->killed = 0;
-//           release(&ptable.lock);
-//           return pid;
-//       }
-//     }
-
-//     // No point waiting if we don't have process.
-//     if(!waitProcess){
-//       release(&ptable.lock);
-//       return -1;
-//     }
-//     // No point waiting if we don't have process.
-//     if(p->killed){
-//       release(&ptable.lock);
-//       return -1;
-//     }
-
-//     // Wait for process to exit.  (See wakeup1 call in proc_exit.)
-//     sleep(p, &ptable.lock);  //DOC: wait-sleep
-//   }
-// }
-
-
-
+// waitpid functions like wait(0), but:
+// 1) waits for process with pid given in args
+// 2) returns the pid of the process that was terminated or -1 if the process dne
+// 3) support NULL value as status argument, like wait(0)
 int
 waitpid(int pid, int * status, int options){
   //status must return the childs exit status
   struct proc *p;
-  int waitProcess;
+  //struct proc *proc;
+  int waitProcess;//, proc;
 
   acquire(&ptable.lock);
   //int* status = (int*)(&aChar);
   for(;;)
   {
-    // Scan through table looking fora specific process.
+    // Scan through table looking for a specific process.
     waitProcess = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       //Look for process id
-      if(p->pid != pid)
+      if(p->pid != pid){
         continue;
+      }
       waitProcess = 1;
+      
+      
+      // if(waitProcess !){
+      //   p->wcount[p->wpid] = proc;
+        
+      //   p->wcount = p->wcount+1;
+      // }
 
       //Add yourself to the processes waiting list
       if(p->wcount < sizeof(p->wpid))
@@ -425,7 +365,7 @@ waitpid(int pid, int * status, int options){
       }
 
       //We will only clear the process if its our child
-      if(p->state == ZOMBIE){
+      if(p->state != ZOMBIE){
           // Found one.
           pid = p->pid;
           kfree(p->kstack);
@@ -456,6 +396,66 @@ waitpid(int pid, int * status, int options){
     sleep(p, &ptable.lock);  //DOC: wait-sleep
   }
 }
+
+
+
+// int
+// waitpid(int pid, int * status, int options){
+//   //status must return the childs exit status
+//   struct proc *p;
+//   int waitProcess;
+
+//   acquire(&ptable.lock);
+//   //int* status = (int*)(&aChar);
+//   for(;;)
+//   {
+//     // Scan through table looking fora specific process.
+//     waitProcess = 0;
+//     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+//       //Look for process id
+//       if(p->pid != pid)
+//         continue;
+//       waitProcess = 1;
+
+//       //Add yourself to the processes waiting list
+//       if(p->wcount < sizeof(p->wpid))
+//       {
+//         p->wpid[p->wcount] = proc;
+//         p->wcount++;
+//       }
+
+//       //We will only clear the process if its our child
+//       if(p->state == ZOMBIE){
+//           // Found one.
+//           pid = p->pid;
+//           kfree(p->kstack);
+//           p->kstack = 0;
+//           freevm(p->pgdir);
+//           p->state = UNUSED;
+//           p->pid = 0;
+//           p->parent = 0;
+//           p->name[0] = 0;
+//           p->killed = 0;
+//           release(&ptable.lock);
+//           return pid;
+//       }
+//     }
+
+//     // No point waiting if we don't have process.
+//     if(!waitProcess){
+//       release(&ptable.lock);
+//       return -1;
+//     }
+//     // No point waiting if we don't have process.
+//     if(proc->killed){
+//       release(&ptable.lock);
+//       return -1;
+//     }
+
+//     // Wait for process to exit.  (See wakeup1 call in proc_exit.)
+//     sleep(proc, &ptable.lock);  //DOC: wait-sleep
+//   }
+// }
 
 
 //PAGEBREAK: 42
